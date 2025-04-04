@@ -1,0 +1,11 @@
+[build]
+  functions = "netlify/functions"
+  command = "npm ci" 
+
+[functions]
+  included_files = ["views/**", "public/**"]
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/index"
+  status = 200
