@@ -119,12 +119,12 @@ block page-script
         }
 
         contents[`${lat},${lng}`].innerHTML += `
-          <h5 class="pt-2">${event.name}</h5>
-          ${eventImage ? `<img class="w-100" src="${eventImage.url}" alt=${event.name}>` : ""}
+          <a class="h5 pt-2 text-primary d-block" href="/event/${event.id}">${event.name}</a>
+          ${eventImage ? `<img class="w-100 mt-1" src="${eventImage.url}" alt=${event.name}>` : ""}
           <p class="mt-1 mb-1"><strong>Location:</strong> ${fullAddress}</p>
           <p class="mb-1"><strong>Start Time:</strong> ${startTime}</p>
           ${endTime ? `<p class="mb-1"><strong>End Time:</strong> ${endTime}</p>` : ""}
-          <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Get Directions</a>
+          <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" class="d-block">Get Directions</a>
         `;
       });
     }
