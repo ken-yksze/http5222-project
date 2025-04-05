@@ -7,21 +7,14 @@ body {
 }
 
 header {
-  padding: 0 1em 0 1em;
-}
-
-footer {
-  padding: 1em;
+  padding: 0 1rem 0 1rem;
+  height: 4rem;
 }
 
 main {
-  flex-grow: 1;
-  padding: 0 1.5em 0 1.5em;
+  margin-top: 4rem;
 }
 
-.links {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  column-gap: 1em;
+#map {
+  height: 35rem;
 }

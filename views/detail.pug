@@ -1,0 +1,99 @@
+extends common/layout
+
+block layout-content
+  div.main-content.row
+    div.col-7
+      h1.pb-3 #{event.name}
+      - event.images.sort((a, b) => b.width - a.width);
+      - const eventImage = event.images.find((image) => image.ratio === "16_9");
+      if eventImage
+        img#event-image.col-8.mb-3(src=eventImage.url, alt=event.name)
+      if event._embedded.venues.length > 0
+        - const venue = event._embedded.venues[0];
+        - let fullAddress = venue.name;
+        -
+        - if (venue.address) {
+        -   Object.values(venue.address).forEach((line) => fullAddress += `, ${line}`);
+        - }
+        -
+        - fullAddress += venue.city ? `, ${venue.city.name}` : "";
+        - fullAddress += venue.state ? `, ${venue.state.stateCode}` : "";
+        - fullAddress += venue.postalCode ? ` ${venue.postalCode}` : "";
+        - fullAddress += venue.country ? `, ${venue.country.name}` : "";
+        p.h4.pb-1 Location:&nbsp
+          span#full-address.fw-normal #{fullAddress}
+      - let startTime;
+      - if (event.dates.start.dateTime) {
+      -   startTime = (new Date(event.dates.start.dateTime)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      - }
+      - else {
+      -   startTime = (new Date(event.dates.start.localDate)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+      - }
+      p.h4.pb-1 Start Time:&nbsp
+        span#start-time.fw-normal #{startTime}
+      if event.dates.end && (event.dates.end.localDate || event.dates.end.dateTime)
+        - let endTime;
+        - if (event.dates.end.dateTime) {
+        -   endTime = (new Date(event.dates.end.dateTime)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        - }
+        - else {
+        -   endTime = (new Date(event.dates.end.localDate)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+        - }
+        p.h4.pb-1 End Time:&nbsp
+          span#end-time.fw-normal #{endTime}
+    div.col-5
+      div#map
+
+block page-script
+  if event._embedded.venues.length > 0
+    script.
+      async function initMap() {
+        const event = !{JSON.stringify(event)};
+        const venue = event._embedded.venues[0];
+        const location = venue.location;
+        const lat = parseFloat(location.latitude);
+        const lng = parseFloat(location.longitude);
+        const fullAddress = document.getElementById("full-address").innerText;
+        const startTime = document.getElementById("start-time").innerText;
+        const endTime = document.getElementById("end-time")?.innerText;
+        const eventImage = document.getElementById("event-image")?.src;
+
+        const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+        const map = new Map(document.getElementById("map"), {
+          center: { lat: lat, lng: lng },
+          zoom: 12,
+          mapId: event.id
+        });
+
+        const marker = new AdvancedMarkerElement({
+          map,
+          position: { lat: lat, lng: lng },
+          title: venue.name
+        });
+
+        const headerContent = document.createElement("h4");
+        headerContent.innerText = event.name
+        headerContent.classList.add("m-0");
+
+        const content = document.createElement("div");
+        content.innerHTML = `
+          ${eventImage ? `<img class="w-100" src="${eventImage}" alt=${event.name}>` : ""}
+          <p class="mt-1 mb-1"><strong>Location:</strong> ${fullAddress}</p>
+          <p class="mb-1"><strong>Start Time:</strong> ${startTime}</p>
+          ${endTime ? `<p class="mb-1"><strong>End Time:</strong> ${endTime}</p>` : ""}
+          <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Get Directions</a>
+        `;
+        
+        const infoWindow = new InfoWindow(
+          {
+            headerContent: headerContent,
+            content: content
+          }
+        );
+
+        marker.addListener("gmp-click", () => {
+          infoWindow.open(map, marker);
+        });
+      }

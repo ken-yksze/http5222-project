@@ -1,5 +1,20 @@
 extends common/layout
 
-block layout-content 
-  .main-content 
-    h1.page-title HTTP5222 A1 
+block layout-content
+  div.main-content
+    h1.mb-3 Suggestions
+    div.row
+      each event in events
+        a.col-3.text-decoration-none.text-black(href=`/event/${event.id}`)
+          - event.images.sort((a, b) => b.width - a.width);
+          - const eventImage = event.images.find((image) => image.ratio === "16_9");
+          if eventImage
+            img.w-100.mb-2(src=eventImage.url, alt=event.name)
+          p.text-truncate.m-0.fw-bold #{event.name}
+          if event._embedded.venues.length > 0
+            p.text-truncate.m-0 #{event._embedded.venues[0].name}
+          - const startDate = (new Date(event.dates.start.dateTime ?? event.dates.start.localDate)).toLocaleDateString("en-CA")
+          p.text-truncate.mb-2 #{startDate}
+            if event.dates.end && (event.dates.end.dateTime || event.dates.end.localDate)
+              - const endDate = (new Date(event.dates.end?.dateTime ?? event.dates.end?.localDate)).toLocaleDateString("en-CA")
+              span - #{endDate}

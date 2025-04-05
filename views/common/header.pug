@@ -1,6 +1,10 @@
-header#header 
-  h2#site-name 
-    a(href="/") HTTP5222 A1 
-  div.links
-    a(href="/admin/projects") Projects 
-    a(href="/admin/skills") Skills 
+header#header.d-flex.align-items-center.border-bottom.position-fixed.w-100.top-0.bg-white
+  h2#site-name.mb-0
+    a.text-danger.text-decoration-none(href="/") Event Explorer
+
+  form#search-form.position-absolute.start-50.translate-middle-x.d-flex.align-items-center.gap-2(method="GET", action="/search")
+    input(type="hidden", name="lat")
+    input(type="hidden", name="lng")
+    label(for="placeAutocomplete")
+      h3.m-0 Location:
+      

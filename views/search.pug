@@ -1,0 +1,130 @@
+extends common/layout
+
+block layout-content
+  div.main-content.row
+    div.col-7
+      div.row
+        each event in events
+          a.col-3.text-decoration-none.text-black(href=`/event/${event.id}`)
+            - event.images.sort((a, b) => b.width - a.width);
+            - const eventImage = event.images.find((image) => image.ratio === "16_9");
+            if eventImage
+              img.w-100.mb-2(src=eventImage.url, alt=event.name)
+            p.text-truncate.m-0.fw-bold #{event.name}
+            if event._embedded.venues.length > 0
+              p.text-truncate.m-0 #{event._embedded.venues[0].name}
+            - const startDate = (new Date(event.dates.start.dateTime ?? event.dates.start.localDate)).toLocaleDateString("en-CA")
+            p.text-truncate.mb-2 #{startDate}
+              if event.dates.end && (event.dates.end.dateTime || event.dates.end.localDate)
+                - const endDate = (new Date(event.dates.end?.dateTime ?? event.dates.end?.localDate)).toLocaleDateString("en-CA")
+                span - #{endDate}
+    div.col-5
+      div#map
+
+block page-script
+  script.
+    async function initMap() {
+      const events = !{JSON.stringify(events)};
+      const urlParams = new URLSearchParams(window.location.search);
+      const lat = parseFloat(urlParams.get("lat"));
+      const lng = parseFloat(urlParams.get("lng"));
+
+      const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+      const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+
+      const map = new Map(document.getElementById("map"), {
+        center: { lat: lat, lng: lng },
+        zoom: 14,
+        mapId: `lat=${lat}, lng=${lng}`
+      });
+
+      const markers = {};
+      const contents = {};
+
+      const searchMarker = new AdvancedMarkerElement({
+        map,
+        position: { lat: lat, lng: lng },
+        title: "Search Location",
+        content: (new PinElement({
+          background: "blue",
+          glyphColor: "white"
+        })).element
+      });
+
+      markers[`${lat},${lng}`] = searchMarker;
+
+      events.forEach((event) => {
+        const venue = event._embedded.venues[0];
+        const location = venue.location;
+        const lat = parseFloat(location.latitude);
+        const lng = parseFloat(location.longitude);
+        event.images.sort((a, b) => b.width - a.width);
+        const eventImage = event.images.find((image) => image.ratio === "16_9");
+        let fullAddress = venue.name;
+
+        if (venue.address) {
+          Object.values(venue.address).forEach((line) => fullAddress += `, ${line}`);
+        }
+
+        fullAddress += venue.city ? `, ${venue.city.name}` : "";
+        fullAddress += venue.state ? `, ${venue.state.stateCode}` : "";
+        fullAddress += venue.postalCode ? ` ${venue.postalCode}` : "";
+        fullAddress += venue.country ? `, ${venue.country.name}` : "";
+
+        let startTime;
+
+        if (event.dates.start?.dateTime) {
+          startTime = (new Date(event.dates.start.dateTime)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        }
+        else if (event.dates.start?.localDate){
+          startTime = (new Date(event.dates.start.localDate)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+        }
+
+        let endTime;
+
+        if (event.dates.end?.dateTime) {
+          endTime = (new Date(event.dates.end.dateTime)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        }
+        else if (event.dates.end?.localDate) {
+          endTime = (new Date(event.dates.end.localDate)).toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+        }
+
+        if (!(`${lat},${lng}` in markers)) {
+          const headerContent = document.createElement("h4");
+          headerContent.innerText = venue.name
+          headerContent.classList.add("m-0");
+
+          const content = document.createElement("div");
+          content.classList.add("bg-light");
+
+          const infoWindow = new InfoWindow(
+            {
+              headerContent: headerContent,
+              content: content
+            }
+          );
+
+          const marker = new AdvancedMarkerElement({
+            map,
+            position: { lat: lat, lng: lng },
+            title: venue.name
+          });
+
+          marker.addListener("gmp-click", () => {
+            infoWindow.open(map, marker);
+          });
+
+          markers[`${lat},${lng}`] = marker;
+          contents[`${lat},${lng}`] = content;
+        }
+
+        contents[`${lat},${lng}`].innerHTML += `
+          <h5 class="pt-2">${event.name}</h5>
+          ${eventImage ? `<img class="w-100" src="${eventImage.url}" alt=${event.name}>` : ""}
+          <p class="mt-1 mb-1"><strong>Location:</strong> ${fullAddress}</p>
+          <p class="mb-1"><strong>Start Time:</strong> ${startTime}</p>
+          ${endTime ? `<p class="mb-1"><strong>End Time:</strong> ${endTime}</p>` : ""}
+          <a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">Get Directions</a>
+        `;
+      });
+    }

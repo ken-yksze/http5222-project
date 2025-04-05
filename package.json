@@ -1,5 +1,5 @@
 {
-  "name": "http5225-a1",
+  "name": "http5225-project",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -7,12 +7,15 @@
   },
   "author": "Yik Kan Sze",
   "license": "ISC",
-  "description": "HTTP5225 Assignment 1",
+  "description": "HTTP5225 Project",
   "dependencies": {
     "dotenv": "^16.4.7",
+    "esm": "^3.2.25",
     "express": "^4.21.2",
-    "mongoose": "^8.10.1",
+    "ip3country": "^5.0.0",
+    "ngeohash": "^0.6.3",
     "pug": "^3.0.3",
+    "request-ip": "^3.3.0",
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {
