@@ -60,6 +60,25 @@ app.get("/event/:id", async (req, res) => {
   });
 });
 
+app.get("/distance", async (req, res) => {
+  const destinations = req.query.destinations;
+  const origins = req.query.destinations;
+  const mode = req.query.destinations;
+
+  const distance = await fetch(
+    `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destinations}&mode=${mode}&origins=${origins}&key=${process.env.GOOGLE_MAPS_API_KEY}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+    .then((res) => res.json())
+    .catch(() => {});
+
+  res.send(distance);
+});
+
 if (process.env.ENV === "dev") {
   //set up server listening
   app.listen(port, () => {
