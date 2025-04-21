@@ -70,6 +70,7 @@ app.get("/distance", async (req, res) => {
     {
       headers: {
         "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
     }
   )
